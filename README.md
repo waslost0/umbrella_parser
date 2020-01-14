@@ -14,4 +14,7 @@ line 70
 se = SessionUC("login", "password")
 ```
 
+
+Tutorial [link](https://lolzteam.org/threads/1344412)
+
 hf
