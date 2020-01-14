@@ -6,13 +6,14 @@ import sys
 import os
 
 
-
 class SessionUC:
     
     def __init__(self, username, password):
         self.__username = username
         self.__password = password
         self.session = requests.Session()
+        self.token = None
+        self.promocode = None
 
         self.payload = {
             'login': self.__username,
@@ -20,21 +21,16 @@ class SessionUC:
             'remember': 1,
             '_xfRedirect': '',
         }
-  
 
     def auth(self):
-        return self.session.post('https://uc.zone/login/login', data=self.payload)
-
-
-    def get_token(self):
-        token_html = self.session.get('https://uc.zone/login')
-        token_bs = BS(token_html.content, 'html.parser')
+        r_auth = self.session.post('https://uc.zone/login/login', data=self.payload)
+        token_bs = BS(r_auth.text, 'html.parser')
         try:
             self.token = token_bs.select('input[name=_xfToken]')[0]['value']
         except IndexError as e:
             print("Check email and confirm account..or shit happend")
+        return r_auth
 
-        
     def wait_new_promo(self):
         while True:
             time.sleep(3)
@@ -49,7 +45,6 @@ class SessionUC:
                     .text.strip()
                 break
 
-
     def activate_promo(self):
         promo_payload = {
             'promocode': self.promocode,
@@ -57,12 +52,11 @@ class SessionUC:
         }
         print(promo_payload)
 
-        result = self.session.post('https://uc.zone/account/promocode', data=promo_payload)
-        html_returned = BS(result.content, 'html.parser')
+        promo_req = self.session.post('https://uc.zone/account/promocode', data=promo_payload)
+        html_returned = BS(promo_req.content, 'html.parser')
 
         os.system('play --no-show-progress --null --channels 2 synth %s sine %f' %( 0.2, 400))
         return html_returned.select('.p-body-pageContent')[0].text.strip()
-
 
 
 if __name__ == '__main__':
@@ -70,25 +64,19 @@ if __name__ == '__main__':
     se = SessionUC("login", "password")
 
     # login
-    result = se.auth()
-    print(result.url)
-    print(result.history[0])
-    if str(result.history[0]) != '<Response [303]>':
+    login_result = se.auth()
+    print(login_result.url)
+    print(login_result.history[0])
+    if str(login_result.history[0]) != '<Response [303]>':
         print("Invalid email or password")
         sys.exit()
 
-
-    # get token
-    se.get_token()
     print(se.token)
 
     print('Waiting new promo')
     se.wait_new_promo()
     print('Activating promocode')
-    result = se.activate_promo()
+    activate_result = se.activate_promo()
 
-    print(result)
-
-
-
+    print(activate_result)
 
