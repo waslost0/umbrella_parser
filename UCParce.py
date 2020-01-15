@@ -45,18 +45,18 @@ class SessionUC:
                     .text.strip()
                 break
 
-def activate_promo(self):
-    promo_payload = {
-        'promocode': self.promocode,
-        '_xfToken': self.token
-    }
-    print(promo_payload)
+    def activate_promo(self):
+        promo_payload = {
+            'promocode': self.promocode,
+            '_xfToken': self.token
+        }
+        print(promo_payload)
 
-    promo_req = self.session.post('https://uc.zone/account/promocode', data=promo_payload)
-    html_returned = BS(promo_req.content, 'html.parser')
+        promo_req = self.session.post('https://uc.zone/account/promocode', data=promo_payload)
+        html_returned = BS(promo_req.content, 'html.parser')
 
-    os.system('play --no-show-progress --null --channels 2 synth %s sine %f' %( 0.2, 400))
-    return html_returned.select('.p-body-pageContent')[0].text.strip()
+        os.system('play --no-show-progress --null --channels 2 synth %s sine %f' %( 0.2, 400))
+        return html_returned.select('.p-body-pageContent')[0].text.strip()
 
 
 if __name__ == '__main__':
