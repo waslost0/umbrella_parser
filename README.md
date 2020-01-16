@@ -1,5 +1,5 @@
-# uc.zone_activate_promo Umbrella parce 
-Script for parce data from website uc.zone. Get and activate promocode. 1 day subscribe for cheat Umbrella.
+# Umbrella parser 
+Script for parse data from website uc.zone. Get and activate promocode. 1 day subscribe for cheat Umbrella.
 
 ## Installation
 
