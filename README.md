@@ -7,8 +7,7 @@ Script for parse data from website uc.zone. Get and activate promocode. 1 day su
 pip install -r requirements.txt
 ```
 
-Change login and password data  
-line 70 
+Change login and password data
 
 ```
 se = SessionUC("login", "password")
