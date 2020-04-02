@@ -23,7 +23,7 @@ class SessionUC:
         }
 
     def auth(self):
-        r_auth = self.session.post('https://uc.zone/login/login', data=self.payload)
+        r_auth = self.session.post('https://uc.zone/login/login', data=self.payload, verify=False)
         token_bs = BS(r_auth.text, 'html.parser')
         try:
             self.token = token_bs.select('input[name=_xfToken]')[0]['value']
@@ -55,7 +55,7 @@ class SessionUC:
         promo_req = self.session.post('https://uc.zone/account/promocode', data=promo_payload)
         html_returned = BS(promo_req.content, 'html.parser')
 
-        os.system('play --no-show-progress --null --channels 2 synth %s sine %f' %( 0.2, 400))
+        #os.system('play --no-show-progress --null --channels 2 synth %s sine %f' %( 0.2, 400))
         return html_returned.select('.p-body-pageContent')[0].text.strip()
 
 
