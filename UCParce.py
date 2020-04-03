@@ -3,8 +3,9 @@ import json
 from bs4 import BeautifulSoup as BS
 import time
 import sys
-import os
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 class SessionUC:
     
@@ -61,24 +62,24 @@ class SessionUC:
 
 if __name__ == '__main__':
     
-    se = SessionUC("login", "password")
+	se = SessionUC("login", "password")
 
     # login
-    login_result = se.auth()
-    print(login_result.url)
-    print(login_result.history[0])
-    if str(login_result.history[0]) != '<Response [303]>':
-        print("Invalid email or password")
-        sys.exit()
+	login_result = se.auth()
+	print(login_result.url)
+	print(login_result.history)
+	if not login_result.history:
+		print("Invalid email or password")
+		sys.exit()
 
-    print(se.token)
+	print(se.token)
 
-    print('Waiting new promo')
-    se.wait_new_promo()
-    print('Activating promocode')
-    activate_result = se.activate_promo()
+	print('Waiting new promo')
+	se.wait_new_promo()
+	print('Activating promocode')
+	activate_result = se.activate_promo()
 
-    print(activate_result)
+	print(activate_result)
 
 
 
