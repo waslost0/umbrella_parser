@@ -85,6 +85,7 @@ if __name__ == '__main__':
         activate_result = se.activate_promo()
 
         print(activate_result)
+    input()
 
 
 
