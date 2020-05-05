@@ -33,18 +33,24 @@ class SessionUC:
         return r_auth
 
     def wait_new_promo(self):
-        while True:
-            time.sleep(3)
-            promo_html = self.session.get('https://uc.zone/cheat-statuses/games/DotA2/load-promocode')
-            promo_bs = BS(promo_html.content, 'html.parser')
-         
-            current_promocode = promo_bs.select('.gamePromocodeItem.gamePromocode--promocode')[0].text.strip()
-            print(current_promocode)
+        try:
+            while True:
+                time.sleep(3)
+                promo_html = self.session.get('https://uc.zone/cheat-statuses/games/DotA2/load-promocode')
+                promo_bs = BS(promo_html.content, 'html.parser')
+             
+                current_promocode = promo_bs.select('.gamePromocodeItem.gamePromocode--promocode')[0].text.strip()
+                print(current_promocode)
 
-            if promo_bs.select('.is-not-activated'):
-                self.promocode = promo_bs.select('.gamePromocodeItem.gamePromocode--promocode.is-not-activated')[0]\
-                    .text.strip()
-                break
+                if promo_bs.select('.is-not-activated'):
+                    self.promocode = promo_bs.select('.gamePromocodeItem.gamePromocode--promocode.is-not-activated')[0]\
+                        .text.strip()
+                    break
+        except Exception as e:
+            current_promocode = promo_bs.select('.gamePromocode.gamePromocode--empty')[0].text.strip()
+            print(current_promocode)
+            return False
+            
 
     def activate_promo(self):
         promo_payload = {
@@ -62,24 +68,23 @@ class SessionUC:
 
 if __name__ == '__main__':
     
-	se = SessionUC("login", "password")
+    se = SessionUC(input("Enter username:"), input("Enter password:"))
 
-    # login
-	login_result = se.auth()
-	print(login_result.url)
-	print(login_result.history)
-	if not login_result.history:
-		print("Invalid email or password")
-		sys.exit()
+    login_result = se.auth()
+    print(login_result.url)
+    print(login_result.history)
+    if not login_result.history:
+        print("Invalid email or password")
+        sys.exit()
 
-	print(se.token)
+    print(se.token)
 
-	print('Waiting new promo')
-	se.wait_new_promo()
-	print('Activating promocode')
-	activate_result = se.activate_promo()
+    print('Waiting new promo')
+    if se.wait_new_promo():
+        print('Activating promocode')
+        activate_result = se.activate_promo()
 
-	print(activate_result)
+        print(activate_result)
 
 
 
