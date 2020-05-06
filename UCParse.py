@@ -45,9 +45,10 @@ class SessionUC:
                 if promo_bs.select('.is-not-activated'):
                     self.promocode = promo_bs.select('.gamePromocodeItem.gamePromocode--promocode.is-not-activated')[0]\
                         .text.strip()
-                    break
+                    return True
         except Exception as e:
             current_promocode = promo_bs.select('.gamePromocode.gamePromocode--empty')[0].text.strip()
+            print(e)
             print(current_promocode)
             return False
             
