@@ -92,12 +92,9 @@ class SessionUC:
 
 if __name__ == '__main__':
     
-<<<<<<< HEAD
     username, password = load_data_from_file()
     se = SessionUC(username, password)
-=======
-    se = SessionUC("USERNAME", "PASSWORD")
->>>>>>> 1445462dc0f8570011dfe08493c53a170fef7719
+
 
     login_result = se.auth()
     print(login_result.url)
