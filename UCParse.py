@@ -3,9 +3,32 @@ import json
 from bs4 import BeautifulSoup as BS
 import time
 import sys
+import os
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
+def load_data_from_file():
+    result = {}
+    try:
+        if not os.path.exists('data.txt'):
+            with open('data.txt', 'w') as f:
+                f.write('{ "username":"", "password":""}')
+
+        with open('data.txt') as json_file:
+            data = json.load(json_file)
+
+        if 'username' in data:
+            result['username'] = data['username']
+        if 'password' in data:
+            result['password'] = data['password']
+
+    except KeyError as error:
+        print('Cannot find: %s', error.args[0])
+    except Exception as error:
+        raise error
+    else:
+        return result['username'], result['password']
 
 class SessionUC:
     
@@ -69,7 +92,8 @@ class SessionUC:
 
 if __name__ == '__main__':
     
-    se = SessionUC(input("Enter username:"), input("Enter password:"))
+    username, password = load_data_from_file()
+    se = SessionUC(username, password)
 
     login_result = se.auth()
     print(login_result.url)
