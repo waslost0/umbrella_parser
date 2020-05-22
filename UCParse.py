@@ -69,7 +69,7 @@ class SessionUC:
 
 if __name__ == '__main__':
     
-    se = SessionUC(input("Enter username:"), input("Enter password:"))
+    se = SessionUC("USERNAME", "PASSWORD")
 
     login_result = se.auth()
     print(login_result.url)
