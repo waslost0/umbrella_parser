@@ -5,15 +5,10 @@ Script for parse data from website uc.zone. Get and activate promocode. 1 day su
 
 ```bash
 pip install -r requirements.txt
+UCParse.py
 ```
 
-Change login and password data
+Change login, password and rucaptcha_key in data.txt
 
-```
-se = SessionUC("login", "password")
-```
-
-
-Tutorial [link](https://lolzteam.org/threads/1344412)
 
 hf
