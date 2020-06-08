@@ -118,9 +118,10 @@ class SessionUC:
             return False
             
 
-    def activate_promo(self):
+    def activate_promo(self, captcha_token):
         promo_payload = {
             'promocode': self.promocode,
+            'g-recaptcha-response': captcha_token,
             '_xfToken': self.token
         }
         print(promo_payload)
@@ -131,10 +132,11 @@ class SessionUC:
         #os.system('play --no-show-progress --null --channels 2 synth %s sine %f' %( 0.2, 400))
         return html_returned.select('.p-body-pageContent')[0].text.strip()
 
-def solve_captcha(rucaptcha_key):
+def solve_captcha(rucaptcha_key, url):
+        print(url)
         try:
             send_captcha = requests.get(
-                "https://rucaptcha.com/in.php?key=" + rucaptcha_key + "&method=userrecaptcha&googlekey=" + "6LfY1TcUAAAAADxfJBcgupBVijeJO5v-81ZAEvOv" + "&pageurl=https://uc.zone/login/login")
+                "https://rucaptcha.com/in.php?key=" + rucaptcha_key + "&method=userrecaptcha&googlekey=" + "6LfY1TcUAAAAADxfJBcgupBVijeJO5v-81ZAEvOv" + "&pageurl=" + url)
         except Exception as e:
             raise e
         print(send_captcha.text)
@@ -179,7 +181,7 @@ if __name__ == '__main__':
     
     if not current_promocode:
         print("Captcha")
-        recaptcha_response = solve_captcha(rucaptcha_key)
+        recaptcha_response = solve_captcha(rucaptcha_key, 'https://uc.zone/login/login')
         print(recaptcha_response)
         
         se = SessionUC(username, password, recaptcha_response)
@@ -193,7 +195,8 @@ if __name__ == '__main__':
     print('Waiting new promo')
     if se.wait_new_promo():
         print('Activating promocode')
-        activate_result = se.activate_promo()
+        recaptcha_response = solve_captcha(rucaptcha_key, 'https://uc.zone/account/promocode')
+        activate_result = se.activate_promo(recaptcha_response)
 
         print(activate_result)
     input()
