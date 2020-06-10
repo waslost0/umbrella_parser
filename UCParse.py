@@ -7,6 +7,7 @@ import os
 import random
 import pickle
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+import datetime
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
@@ -36,13 +37,14 @@ def load_data_from_file():
 
 class SessionUC:
     
-    def __init__(self, username, password, recaptcha_response=None):
+    def __init__(self, username, password, rucaptcha_key, recaptcha_response=None):
         self.__username = username
         self.__password = password
         self.session = requests.Session()
         self.token = None
         self.promocode = None
         self.g_rec = recaptcha_response
+        self.rucaptcha_key = rucaptcha_key
 
         self.payload = {
             'login': self.__username,
@@ -98,30 +100,34 @@ class SessionUC:
         return r_auth
 
     def wait_new_promo(self):
-        try:
-            while True:
+        while True:
+            try:
                 time.sleep(0.5)
-                promo_html = self.session.get('https://uc.zone/cheat-statuses/games/DotA2/load-promocode')
+                promo_html = self.session.get('https://uc.zone/cheat-statuses/games/DotA2/load-promocode', verify=False)
                 promo_bs = BS(promo_html.content, 'html.parser')
              
                 current_promocode = promo_bs.select('.gamePromocodeItem.gamePromocode--promocode')[0].text.strip()
                 print(current_promocode)
-
+                print(str(datetime.datetime.now().time()))
+                curr_time = str(datetime.datetime.now().time()).split(":")[1]
+                if int(curr_time) % 3 == 0:
+                    self.g_rec = solve_captcha(rucaptcha_key, 'https://uc.zone/account/promocode')
+                    
                 if promo_bs.select('.is-not-activated'):
+                    print(self.g_rec)
+                    winsound.PlaySound("SystemAsterisk", winsound.SND_ALIAS)
+                    winsound.PlaySound("SystemHand", winsound.SND_ASYNC) 
                     self.promocode = promo_bs.select('.gamePromocodeItem.gamePromocode--promocode.is-not-activated')[0]\
                         .text.strip()
                     return True
-        except Exception as e:
-            current_promocode = promo_bs.select('.gamePromocode.gamePromocode--empty')[0].text.strip()
-            print(e)
-            print(current_promocode)
-            return False
-            
+            except Exception as e:
+                print(e)
+        
 
-    def activate_promo(self, captcha_token):
+    def activate_promo(self):
         promo_payload = {
             'promocode': self.promocode,
-            'g-recaptcha-response': captcha_token,
+            'g-recaptcha-response': self.g_rec,
             '_xfToken': self.token
         }
         print(promo_payload)
@@ -144,8 +150,9 @@ def solve_captcha(rucaptcha_key, url):
         print(captcha_id)
      
         print("rucaptcha id:" + captcha_id)
+        time.sleep(10)
         while True:
-            time.sleep(5)
+            time.sleep(3)
             print("Ожидаю капчу")
             try:
                 recived_captcha = requests.get(
@@ -160,13 +167,16 @@ def solve_captcha(rucaptcha_key, url):
                 recived_captcha_id = captcha_id
                 return recived_captcha.json()['request']
 
+import winsound
+
+
 if __name__ == '__main__':
-
-
+   
+    
     username, password, rucaptcha_key = load_data_from_file()
     print(rucaptcha_key)
     print(username + ":" + password)
-    se = SessionUC(username, password)
+    se = SessionUC(username, password, rucaptcha_key=rucaptcha_key)
     current_promocode = None
    
     login_result = se.auth()
@@ -184,7 +194,7 @@ if __name__ == '__main__':
         recaptcha_response = solve_captcha(rucaptcha_key, 'https://uc.zone/login/login')
         print(recaptcha_response)
         
-        se = SessionUC(username, password, recaptcha_response)
+        se = SessionUC(username, password, rucaptcha_key=rucaptcha_key, recaptcha_response=recaptcha_response)
         login_result = se.auth()
         print(login_result.url)
         print(login_result.history)
@@ -195,10 +205,13 @@ if __name__ == '__main__':
     print('Waiting new promo')
     if se.wait_new_promo():
         print('Activating promocode')
-        recaptcha_response = solve_captcha(rucaptcha_key, 'https://uc.zone/account/promocode')
-        activate_result = se.activate_promo(recaptcha_response)
+        #recaptcha_response = solve_captcha(rucaptcha_key, 'https://uc.zone/account/promocode')
+        #se.g_rec = recaptcha_response
+        activate_result = se.activate_promo()
 
         print(activate_result)
+    
+
     input()
 
 
