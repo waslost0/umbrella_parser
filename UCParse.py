@@ -64,6 +64,13 @@ class SessionUC:
         current_promocode = None
         r_auth = None
         try:
+            login_result = self.session.get("https://uc.zone/account/promocode", verify=False)
+            token_bs = BS(login_result.text, 'html.parser')
+            self.token = token_bs.select('input[name=_xfToken]')[0]['value']
+            self.payload['_xfToken'] = self.token
+        except Exception as e:
+            print(e)
+        try:
             current_promocode = promo_bs.select('.gamePromocodeItem.gamePromocode--promocode')[0].text.strip()
         except IndexError as e:
             print("Login unsucc")
@@ -71,6 +78,7 @@ class SessionUC:
         if not current_promocode:
             print("Trying to login")
             if self.g_rec is None:
+                print(self.payload)
                 r_auth = self.session.post('https://uc.zone/login/login', data=self.payload, verify=False)
             else:
                 data = {
@@ -81,15 +89,19 @@ class SessionUC:
                     '_xfRedirect': '/',
                     '_xfToken': ''
                 }
+                print(data)
                 r_auth = self.session.post('https://uc.zone/login/login', data=data, verify=False)
-            login_result = self.session.get("https://uc.zone/", verify=False)
+            login_result = self.session.get("https://uc.zone/account/promocode", verify=False)
             token_bs = BS(login_result.text, 'html.parser')
         else:
-            login_result = self.session.get("https://uc.zone/", verify=False)
+            login_result = self.session.get("https://uc.zone/account/promocode", verify=False)
             token_bs = BS(login_result.text, 'html.parser')
         try:
-            print(token_bs.select('input[name=_xfToken]'))
-            self.token = token_bs.select('input[name=_xfToken]')[0]['value']                
+            login_result = self.session.get("https://uc.zone/account/promocode", verify=False)            
+            token_bs = BS(login_result.text, 'html.parser')
+            print('TOKEN:', end='')
+            print(token_bs.select('input[name="_xfToken"]'))
+            self.token = token_bs.select('input[name="_xfToken"]')[0]['value']                
                 
         except IndexError as e:
             print("Captcha shit")
@@ -100,6 +112,14 @@ class SessionUC:
         return r_auth
 
     def wait_new_promo(self):
+        captcha_got = 0
+        try:
+            login_result = self.session.get("https://uc.zone/account/promocode", verify=False)
+            token_bs = BS(login_result.text, 'html.parser')
+            self.token = token_bs.select('input[name=_xfToken]')[0]['value']
+        except Exception as e:
+            print(e)
+            
         while True:
             try:
                 time.sleep(0.5)
@@ -110,13 +130,12 @@ class SessionUC:
                 print(current_promocode)
                 print(str(datetime.datetime.now().time()))
                 curr_time = str(datetime.datetime.now().time()).split(":")[1]
-                if int(curr_time) % 3 == 0:
-                    self.g_rec = solve_captcha(rucaptcha_key, 'https://uc.zone/account/promocode')
+                if int(str(curr_time)[1]) % 2 == 0  and captcha_got != int(str(curr_time)[1]):
+                    self.g_rec = solve_captcha(self.rucaptcha_key, 'https://uc.zone/account/promocode')
+                    captcha_got = int(str(curr_time)[1])
                     
                 if promo_bs.select('.is-not-activated'):
                     print(self.g_rec)
-                    winsound.PlaySound("SystemAsterisk", winsound.SND_ALIAS)
-                    winsound.PlaySound("SystemHand", winsound.SND_ASYNC) 
                     self.promocode = promo_bs.select('.gamePromocodeItem.gamePromocode--promocode.is-not-activated')[0]\
                         .text.strip()
                     return True
@@ -125,18 +144,22 @@ class SessionUC:
         
 
     def activate_promo(self):
-        promo_payload = {
-            'promocode': self.promocode,
-            'g-recaptcha-response': self.g_rec,
-            '_xfToken': self.token
-        }
-        print(promo_payload)
+        try:
+            promo_payload = {
+                'promocode': self.promocode,
+                'g-recaptcha-response': self.g_rec,
+                '_xfToken': self.token,
+                '_xfRequestUri': '/account/promocode'
+            }
+            print(promo_payload)
 
-        promo_req = self.session.post('https://uc.zone/account/promocode', data=promo_payload)
-        html_returned = BS(promo_req.content, 'html.parser')
-
-        #os.system('play --no-show-progress --null --channels 2 synth %s sine %f' %( 0.2, 400))
-        return html_returned.select('.p-body-pageContent')[0].text.strip()
+            promo_req = self.session.post('https://uc.zone/account/promocode', data=promo_payload)
+            html_returned = BS(promo_req.content, 'html.parser')
+            print(promo_req)
+            #os.system('play --no-show-progress --null --channels 2 synth %s sine %f' %( 0.2, 400))
+            return html_returned.select('.blockMessage')
+        except Exception as e:
+            raise e
 
 def solve_captcha(rucaptcha_key, url):
         print(url)
@@ -150,7 +173,7 @@ def solve_captcha(rucaptcha_key, url):
         print(captcha_id)
      
         print("rucaptcha id:" + captcha_id)
-        time.sleep(10)
+        time.sleep(15)
         while True:
             time.sleep(3)
             print("Ожидаю капчу")
@@ -199,8 +222,7 @@ if __name__ == '__main__':
         print(login_result.url)
         print(login_result.history)
         
-
-    print(se.token)
+    activate_result = se.activate_promo()
 
     print('Waiting new promo')
     if se.wait_new_promo():
