@@ -66,7 +66,7 @@ class SessionUC:
         try:
             self.token = token_bs.select('input[name=_xfToken]')[0]['value']
         except IndexError as e:
-            print("Check email and confirm account..or shit happend")
+            print("Check email and confirm account..or shit happend.\nYou can try to use VPN. It helps some times.")
             exit()
         return r_auth
         
@@ -159,12 +159,9 @@ def solve_captcha(rucaptcha_key, url):
                 recived_captcha_id = captcha_id
                 return recived_captcha.json()['request']
 
-import winsound
-
 
 if __name__ == '__main__':
    
-    
     username, password, rucaptcha_key = load_data_from_file()
     print(rucaptcha_key)
     print(username + ":" + password)
@@ -173,14 +170,6 @@ if __name__ == '__main__':
    
     login_result = se.auth()
     
-    try:
-        promo_html = se.session.get('https://uc.zone/cheat-statuses/games/DotA2/load-promocode')
-        promo_bs = BS(promo_html.content, 'html.parser')
-        current_promocode = promo_bs.select('.gamePromocodeItem.gamePromocode--promocode')[0].text.strip()
-        print(current_promocode)
-    except Exception as e:
-        print(e)
-
     print('Waiting new promo')
     if se.wait_new_promo():
         print('Activating promocode')
