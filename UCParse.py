@@ -45,6 +45,7 @@ class SessionUC:
         self.promocode = None
         self.g_rec = recaptcha_response
         self.rucaptcha_key = rucaptcha_key
+        self.timing_list = []
 
         self.payload = {
             'login': self.__username,
@@ -53,63 +54,28 @@ class SessionUC:
             '_xfRedirect': '/',
             '_xfToken': ''
         }
+        
+    def load_timig_list(self):
+        with open("times_data.txt", "r") as file:
+            self.timing_list = file.read()
+        self.timing_list = self.timing_list.split('\n') 
 
     def auth(self):
-        if os.path.isfile("cookies"):
-            with open('cookies', 'rb') as file:
-                self.session.cookies.update(pickle.load(file))
-          
-        promo_html = se.session.get('https://uc.zone/cheat-statuses/games/DotA2/load-promocode', verify=False)
-        promo_bs = BS(promo_html.content, 'html.parser')
-        current_promocode = None
-        r_auth = None
+        r_auth = self.session.post('https://uc.zone/login/login', data=self.payload, verify=False)
+        token_bs = BS(r_auth.text, 'html.parser')
         try:
-            login_result = self.session.get("https://uc.zone/account/promocode", verify=False)
-            token_bs = BS(login_result.text, 'html.parser')
             self.token = token_bs.select('input[name=_xfToken]')[0]['value']
-            self.payload['_xfToken'] = self.token
-        except Exception as e:
-            print(e)
-        try:
-            current_promocode = promo_bs.select('.gamePromocodeItem.gamePromocode--promocode')[0].text.strip()
         except IndexError as e:
-            print("Login unsucc")
-        
-        if not current_promocode:
-            print("Trying to login")
-            if self.g_rec is None:
-                print(self.payload)
-                r_auth = self.session.post('https://uc.zone/login/login', data=self.payload, verify=False)
-            else:
-                data = {
-                    'login': self.__username,
-                    'password': self.__password,
-                    'g-recaptcha-response': self.g_rec,
-                    'remember': 1,
-                    '_xfRedirect': '/',
-                    '_xfToken': ''
-                }
-                print(data)
-                r_auth = self.session.post('https://uc.zone/login/login', data=data, verify=False)
-            login_result = self.session.get("https://uc.zone/account/promocode", verify=False)
-            token_bs = BS(login_result.text, 'html.parser')
-        else:
-            login_result = self.session.get("https://uc.zone/account/promocode", verify=False)
-            token_bs = BS(login_result.text, 'html.parser')
-        try:
-            login_result = self.session.get("https://uc.zone/account/promocode", verify=False)            
-            token_bs = BS(login_result.text, 'html.parser')
-            print('TOKEN:', end='')
-            print(token_bs.select('input[name="_xfToken"]'))
-            self.token = token_bs.select('input[name="_xfToken"]')[0]['value']                
-                
-        except IndexError as e:
-            print("Captcha shit")
-            
-        else:
-            with open('cookies', 'wb') as file:
-                pickle.dump(self.session.cookies, file)
+            print("Check email and confirm account..or shit happend")
+            exit()
         return r_auth
+        
+    def get_curr_time(self):
+        curr_time = datetime.datetime.now().strftime("%H:%M")
+        curr_time_list = list(curr_time)
+        curr_time_list[-1] = str(int(curr_time_list[-1]) + 1)
+        return ''.join(curr_time_list)
+        
 
     def wait_new_promo(self):
         captcha_got = 0
@@ -119,6 +85,7 @@ class SessionUC:
             self.token = token_bs.select('input[name=_xfToken]')[0]['value']
         except Exception as e:
             print(e)
+        self.load_timig_list()
             
         while True:
             try:
@@ -129,10 +96,12 @@ class SessionUC:
                 current_promocode = promo_bs.select('.gamePromocodeItem.gamePromocode--promocode')[0].text.strip()
                 print(current_promocode)
                 print(str(datetime.datetime.now().time()))
-                curr_time = str(datetime.datetime.now().time()).split(":")[1]
-                if int(str(curr_time)[1]) % 2 == 0  and captcha_got != int(str(curr_time)[1]):
+                current_minutes = str(datetime.datetime.now().time()).split(":")[1]
+                
+                curr_time = self.get_curr_time()
+                if curr_time in self.timing_list and captcha_got != int(str(current_minutes)[1]):
                     self.g_rec = solve_captcha(self.rucaptcha_key, 'https://uc.zone/account/promocode')
-                    captcha_got = int(str(curr_time)[1])
+                    captcha_got = int(str(current_minutes)[1])
                     
                 if promo_bs.select('.is-not-activated'):
                     print(self.g_rec)
@@ -211,32 +180,12 @@ if __name__ == '__main__':
         print(current_promocode)
     except Exception as e:
         print(e)
-    
-    if not current_promocode:
-        print("Captcha")
-        recaptcha_response = solve_captcha(rucaptcha_key, 'https://uc.zone/login/login')
-        print(recaptcha_response)
-        
-        se = SessionUC(username, password, rucaptcha_key=rucaptcha_key, recaptcha_response=recaptcha_response)
-        login_result = se.auth()
-        print(login_result.url)
-        print(login_result.history)
-        
-    activate_result = se.activate_promo()
 
     print('Waiting new promo')
     if se.wait_new_promo():
         print('Activating promocode')
-        #recaptcha_response = solve_captcha(rucaptcha_key, 'https://uc.zone/account/promocode')
-        #se.g_rec = recaptcha_response
         activate_result = se.activate_promo()
-
         print(activate_result)
     
 
     input()
-
-
-
-
-
