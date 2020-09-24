@@ -97,8 +97,6 @@ class SessionUC:
                 current_minutes = str(datetime.datetime.now().time()).split(":")[1]
 
                 curr_time = self.get_curr_time()
-                print(curr_time in self.timing_list)
-
                 if curr_time in self.timing_list and captcha_got != int(str(current_minutes)[1]):
                     self.g_rec = solve_captcha(self.rucaptcha_key, 'https://uc.zone/account/promocode')
                     captcha_got = int(str(current_minutes)[1])
@@ -125,7 +123,7 @@ class SessionUC:
                 requests.post("http://rucaptcha.com/res.php?key=" + rucaptcha_key + "&action=reportbad&id=" + str(
                     self.recived_captcha_id))
 
-            if "Вы не прошли проверку CAPTCHA должным образом." in promo_req.txt:
+            if "Вы не прошли проверку CAPTCHA должным образом." in promo_req.text:
                 requests.post("http://rucaptcha.com/res.php?key=" + rucaptcha_key + "&action=reportbad&id=" + str(
                     self.recived_captcha_id))
 
