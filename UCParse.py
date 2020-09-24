@@ -2,14 +2,12 @@ import requests
 import json
 from bs4 import BeautifulSoup as BS
 import time
-import sys
 import os
-import random
-import pickle
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import datetime
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
 
 def load_data_from_file():
     result = {}
@@ -35,8 +33,8 @@ def load_data_from_file():
     else:
         return result['username'], result['password'], result['rucaptcha_key']
 
+
 class SessionUC:
-    
     def __init__(self, username, password, rucaptcha_key, recaptcha_response=None):
         self.__username = username
         self.__password = password
@@ -54,7 +52,7 @@ class SessionUC:
             '_xfRedirect': '/',
             '_xfToken': ''
         }
-        
+
     def load_timig_list(self):
         with open("times_data.txt", "r") as file:
             self.timing_list = file.read()
@@ -69,13 +67,12 @@ class SessionUC:
             print("Check email and confirm account..or shit happend.\nYou can try to use VPN. It helps some times.")
             exit()
         return r_auth
-        
+
     def get_curr_time(self):
         curr_time = datetime.datetime.now().strftime("%H:%M")
         curr_time_list = list(curr_time)
         curr_time_list[-1] = str(int(curr_time_list[-1]) + 1)
-        return ''.join(curr_time_list)
-        
+        return ''.join(curr_time_list) 
 
     def wait_new_promo(self):
         captcha_got = 0
@@ -86,31 +83,32 @@ class SessionUC:
         except Exception as e:
             print(e)
         self.load_timig_list()
-            
+        print(self.timing_list)
+
         while True:
             try:
                 time.sleep(0.5)
                 promo_html = self.session.get('https://uc.zone/cheat-statuses/games/DotA2/load-promocode', verify=False)
                 promo_bs = BS(promo_html.content, 'html.parser')
-             
+
                 current_promocode = promo_bs.select('.gamePromocodeItem.gamePromocode--promocode')[0].text.strip()
                 print(current_promocode)
                 print(str(datetime.datetime.now().time()))
                 current_minutes = str(datetime.datetime.now().time()).split(":")[1]
-                
+
                 curr_time = self.get_curr_time()
+                print(curr_time in self.timing_list)
+
                 if curr_time in self.timing_list and captcha_got != int(str(current_minutes)[1]):
                     self.g_rec = solve_captcha(self.rucaptcha_key, 'https://uc.zone/account/promocode')
                     captcha_got = int(str(current_minutes)[1])
-                    
-                if promo_bs.select('.is-not-activated'):
-                    print(self.g_rec)
-                    self.promocode = promo_bs.select('.gamePromocodeItem.gamePromocode--promocode.is-not-activated')[0]\
-                        .text.strip()
+
+                promo = promo_bs.find('div', {'class': 'gamePromocodeItem gamePromocode--promocode is-not-activated'})
+                if promo:
+                    self.promocode = promo.text.strip()
                     return True
             except Exception as e:
-                print(e)
-        
+                raise e
 
     def activate_promo(self):
         try:
@@ -123,6 +121,14 @@ class SessionUC:
             print(promo_payload)
 
             promo_req = self.session.post('https://uc.zone/account/promocode', data=promo_payload)
+            if 'errors' in promo_req.txt:
+                requests.post("http://rucaptcha.com/res.php?key=" + rucaptcha_key + "&action=reportbad&id=" + str(
+                    self.recived_captcha_id))
+
+            if "Вы не прошли проверку CAPTCHA должным образом." in promo_req.txt:
+                requests.post("http://rucaptcha.com/res.php?key=" + rucaptcha_key + "&action=reportbad&id=" + str(
+                    self.recived_captcha_id))
+
             html_returned = BS(promo_req.content, 'html.parser')
             print(promo_req)
             #os.system('play --no-show-progress --null --channels 2 synth %s sine %f' %( 0.2, 400))
@@ -130,51 +136,49 @@ class SessionUC:
         except Exception as e:
             raise e
 
+
 def solve_captcha(rucaptcha_key, url):
-        print(url)
+    try:
+        send_captcha = requests.get(
+            "https://rucaptcha.com/in.php?key=" + rucaptcha_key + "&method=userrecaptcha&googlekey=" + "6LfY1TcUAAAAADxfJBcgupBVijeJO5v-81ZAEvOv" + "&pageurl=" + url)
+    except Exception as e:
+        raise e
+    print(send_captcha.text)
+
+    captcha_id = send_captcha.text.split("|")[1]
+
+
+    print("rucaptcha id:" + captcha_id)
+    time.sleep(15)
+    while True:
+        time.sleep(3)
+        print("Ожидаю капчу")
         try:
-            send_captcha = requests.get(
-                "https://rucaptcha.com/in.php?key=" + rucaptcha_key + "&method=userrecaptcha&googlekey=" + "6LfY1TcUAAAAADxfJBcgupBVijeJO5v-81ZAEvOv" + "&pageurl=" + url)
-        except Exception as e:
-            raise e
-        print(send_captcha.text)
-        captcha_id = send_captcha.text.split("|")[1]
-        print(captcha_id)
-     
-        print("rucaptcha id:" + captcha_id)
-        time.sleep(15)
-        while True:
-            time.sleep(3)
-            print("Ожидаю капчу")
-            try:
-                recived_captcha = requests.get(
-                    "https://rucaptcha.com/res.php?key=" + rucaptcha_key + "&action=get&id=" + captcha_id + "&json=1",
-                    timeout=20)
-            except:
-                continue
-            if (recived_captcha.json()["request"] == "ERROR_CAPTCHA_UNSOLVABLE"):
-                raise Exception("CaptchaUnsolvable")
-            if recived_captcha.json()['status'] == 1:
-                print(recived_captcha.json())
-                recived_captcha_id = captcha_id
-                return recived_captcha.json()['request']
+            recived_captcha = requests.get(
+                "https://rucaptcha.com/res.php?key=" + rucaptcha_key + "&action=get&id=" + captcha_id + "&json=1",
+                timeout=20)
+        except:
+            continue
+        if (recived_captcha.json()["request"] == "ERROR_CAPTCHA_UNSOLVABLE"):
+            raise Exception("CaptchaUnsolvable")
+        if recived_captcha.json()['status'] == 1:
+            print(recived_captcha.json())
+            return recived_captcha.json()['request']
 
 
 if __name__ == '__main__':
-   
     username, password, rucaptcha_key = load_data_from_file()
     print(rucaptcha_key)
     print(username + ":" + password)
     se = SessionUC(username, password, rucaptcha_key=rucaptcha_key)
     current_promocode = None
-   
+
     login_result = se.auth()
-    
     print('Waiting new promo')
     if se.wait_new_promo():
         print('Activating promocode')
         activate_result = se.activate_promo()
         print(activate_result)
-    
+
 
     input()
