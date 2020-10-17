@@ -88,10 +88,15 @@ class SessionUC:
         while True:
             try:
                 time.sleep(0.5)
+
                 promo_html = self.session.get('https://uc.zone/cheat-statuses/games/DotA2/load-promocode', verify=False)
                 promo_bs = BS(promo_html.content, 'html.parser')
 
-                current_promocode = promo_bs.select('.gamePromocodeItem.gamePromocode--promocode')[0].text.strip()
+                try:
+                    current_promocode = promo_bs.select('.gamePromocodeItem.gamePromocode--promocode')[0].text.strip()
+                except:
+                    continue
+
                 print(current_promocode)
                 print(str(datetime.datetime.now().time()))
                 current_minutes = str(datetime.datetime.now().time()).split(":")[1]
@@ -119,7 +124,7 @@ class SessionUC:
             print(promo_payload)
 
             promo_req = self.session.post('https://uc.zone/account/promocode', data=promo_payload)
-            if 'errors' in promo_req.txt:
+            if 'errors' in promo_req.text:
                 requests.post("http://rucaptcha.com/res.php?key=" + rucaptcha_key + "&action=reportbad&id=" + str(
                     self.recived_captcha_id))
 
