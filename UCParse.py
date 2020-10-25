@@ -137,7 +137,6 @@ class SessionUC:
                     self.recived_captcha_id))
 
             html_returned = BS(promo_req.content, 'html.parser')
-            print(promo_req)
             #os.system('play --no-show-progress --null --channels 2 synth %s sine %f' %( 0.2, 400))
             return html_returned.select('.blockMessage')
         except Exception as e:
@@ -153,7 +152,6 @@ def solve_captcha(rucaptcha_key, url):
     print(send_captcha.text)
 
     captcha_id = send_captcha.text.split("|")[1]
-
 
     print("rucaptcha id:" + captcha_id)
     time.sleep(15)
