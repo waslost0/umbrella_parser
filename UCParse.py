@@ -5,8 +5,10 @@ import time
 import os
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import datetime
+import urllib3
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 def load_data_from_file():
@@ -63,8 +65,9 @@ class SessionUC:
         token_bs = BS(r_auth.text, 'html.parser')
         try:
             self.token = token_bs.select('input[name=_xfToken]')[0]['value']
-        except IndexError as e:
+        except IndexError as error:
             print("Check email and confirm account..or shit happend.\nYou can try to use VPN. It helps some times.")
+            print(error)
             exit()
         return r_auth
 
@@ -103,7 +106,8 @@ class SessionUC:
 
                 curr_time = self.get_curr_time()
                 if curr_time in self.timing_list and captcha_got != int(str(current_minutes)[1]):
-                    self.g_rec = solve_captcha(self.rucaptcha_key, 'https://uc.zone/account/promocode')
+                    time.sleep(20)
+                    self.recived_captcha_id, self.g_rec = solve_captcha(self.rucaptcha_key, 'https://uc.zone/account/promocode')
                     captcha_got = int(str(current_minutes)[1])
 
                 promo = promo_bs.find('div', {'class': 'gamePromocodeItem gamePromocode--promocode is-not-activated'})
@@ -166,7 +170,7 @@ def solve_captcha(rucaptcha_key, url):
             raise Exception("CaptchaUnsolvable")
         if recived_captcha.json()['status'] == 1:
             print(recived_captcha.json())
-            return recived_captcha.json()['request']
+            return captcha_id, recived_captcha.json()['request']
 
 
 if __name__ == '__main__':
