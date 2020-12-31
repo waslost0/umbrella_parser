@@ -46,12 +46,13 @@ class SessionUC:
         self.g_rec = recaptcha_response
         self.rucaptcha_key = rucaptcha_key
         self.timing_list = []
+        self.session.headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36'}
 
         self.payload = {
             'login': self.__username,
             'password': self.__password,
             'remember': 1,
-            '_xfRedirect': '/',
+            '_xfRedirect': 'https://uc.zone/',
             '_xfToken': ''
         }
 
@@ -61,10 +62,13 @@ class SessionUC:
         self.timing_list = self.timing_list.split('\n') 
 
     def auth(self):
+        token_get = self.session.get('https://uc.zone/login/login')
+        token_bs = BS(token_get.text, 'html.parser')
+        self.payload['_xfToken'] = token_bs.get('value')
         r_auth = self.session.post('https://uc.zone/login/login', data=self.payload, verify=False)
-        token_bs = BS(r_auth.text, 'html.parser')
         try:
-            self.token = token_bs.select('input[name=_xfToken]')[0]['value']
+            soup = BS(r_auth.text, 'html.parser')
+            print(soup.select('span[class="p-navgroup-linkText"]')[0].text)
         except IndexError as error:
             print("Check email and confirm account..or shit happend.\nYou can try to use VPN. It helps some times.")
             print(error)
@@ -184,6 +188,5 @@ if __name__ == '__main__':
         print('Activating promocode')
         activate_result = se.activate_promo()
         print(activate_result)
-
 
     input()
