@@ -3,12 +3,35 @@ import json
 from bs4 import BeautifulSoup as BS
 import time
 import os
+import cloudscraper
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import datetime
 import urllib3
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+
+# session = cloudscraper.create_scraper(browser={
+        # 'browser': 'firefox',
+        # 'platform': 'windows',
+        # 'mobile': False
+    # })
+
+
+# response = session.get("http://uc.zone")
+# print(response.text)
+# soup = BS(response.content, 'lxml')
+# res = soup.select('script')[-1]
+
+# swp_token = str(res).split('= "')[1].split('";')
+# headers = {
+    # 'swp_token': swp_token[0]
+# }
+# res = session.get("http://uc.zone", headers=headers) 
+# print(res.text)
+
+# exit()
 
 
 def load_data_from_file():
@@ -75,10 +98,16 @@ class SessionUC:
             exit()
         return r_auth
 
-    def get_curr_time(self):
+    def get_curr_time2(self):
         curr_time = datetime.datetime.now().strftime("%H:%M")
         curr_time_list = list(curr_time)
         curr_time_list[-1] = str(int(curr_time_list[-1]) + 1)
+        return ''.join(curr_time_list) 
+    
+    def get_curr_time(self):
+        curr_time = datetime.datetime.now().strftime("%H:%M")
+        curr_time_list = list(curr_time)
+        curr_time_list[-1] = str(int(curr_time_list[-1]))
         return ''.join(curr_time_list) 
 
     def wait_new_promo(self):
@@ -94,7 +123,7 @@ class SessionUC:
 
         while True:
             try:
-                time.sleep(0.5)
+                time.sleep(1)
 
                 promo_html = self.session.get('https://uc.zone/cheat-statuses/games/DotA2/load-promocode', verify=False)
                 promo_bs = BS(promo_html.content, 'html.parser')
@@ -106,13 +135,18 @@ class SessionUC:
 
                 print(current_promocode)
                 print(str(datetime.datetime.now().time()))
-                current_minutes = str(datetime.datetime.now().time()).split(":")[1]
+                # current_minutes = str(datetime.datetime.now().time()).split(":")[1]
+                curr_time = str(datetime.datetime.now().time()).split(":")[1]
 
-                curr_time = self.get_curr_time()
-                if curr_time in self.timing_list and captcha_got != int(str(current_minutes)[1]):
-                    time.sleep(20)
-                    self.recived_captcha_id, self.g_rec = solve_captcha(self.rucaptcha_key, 'https://uc.zone/account/promocode')
-                    captcha_got = int(str(current_minutes)[1])
+                #curr_time = self.get_curr_time2()
+                if int(str(curr_time)[1]) % 2 == 0  and captcha_got != int(str(curr_time)[1]):
+                    self.g_rec = solve_captcha(self.rucaptcha_key, 'https://uc.zone/account/promocode')
+                    captcha_got = int(str(curr_time)[1])
+                    
+                # if curr_time in self.timing_list and captcha_got != int(str(current_minutes)[1]):
+                    # time.sleep(10)
+                    # self.recived_captcha_id, self.g_rec = solve_captcha(self.rucaptcha_key, 'https://uc.zone/account/promocode')
+                    # captcha_got = int(str(current_minutes)[1])
 
                 promo = promo_bs.find('div', {'class': 'gamePromocodeItem gamePromocode--promocode is-not-activated'})
                 if promo:
