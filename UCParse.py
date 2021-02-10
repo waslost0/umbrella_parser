@@ -3,35 +3,12 @@ import json
 from bs4 import BeautifulSoup as BS
 import time
 import os
-import cloudscraper
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import datetime
 import urllib3
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-
-# session = cloudscraper.create_scraper(browser={
-        # 'browser': 'firefox',
-        # 'platform': 'windows',
-        # 'mobile': False
-    # })
-
-
-# response = session.get("http://uc.zone")
-# print(response.text)
-# soup = BS(response.content, 'lxml')
-# res = soup.select('script')[-1]
-
-# swp_token = str(res).split('= "')[1].split('";')
-# headers = {
-    # 'swp_token': swp_token[0]
-# }
-# res = session.get("http://uc.zone", headers=headers) 
-# print(res.text)
-
-# exit()
 
 
 def load_data_from_file():
