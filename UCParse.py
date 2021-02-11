@@ -96,7 +96,6 @@ class SessionUC:
         except Exception as e:
             print(e)
         self.load_timig_list()
-        print(self.timing_list)
 
         while True:
             try:
@@ -116,7 +115,7 @@ class SessionUC:
                 curr_time = str(datetime.datetime.now().time()).split(":")[1]
 
                 #curr_time = self.get_curr_time2()
-                if int(str(curr_time)[1]) % 2 == 0  and captcha_got != int(str(curr_time)[1]):
+                if int(str(curr_time)[1]) % 3 == 0  and captcha_got != int(str(curr_time)[1]):
                     self.g_rec = solve_captcha(self.rucaptcha_key, 'https://uc.zone/account/promocode')
                     captcha_got = int(str(curr_time)[1])
                     
@@ -183,7 +182,7 @@ def solve_captcha(rucaptcha_key, url):
             raise Exception("CaptchaUnsolvable")
         if recived_captcha.json()['status'] == 1:
             print(recived_captcha.json())
-            return captcha_id, recived_captcha.json()['request']
+            return recived_captcha.json()['request']
 
 
 if __name__ == '__main__':
