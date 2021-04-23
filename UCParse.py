@@ -56,7 +56,7 @@ class SessionUC:
             '_xfRedirect': 'https://uc.zone/',
             '_xfToken': ''
         }
-        self.cookie_load()
+        #self.cookie_load()
         
     def cookie_load(self):
         if not os.path.isfile('cookie.txt'):
