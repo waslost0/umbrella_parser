@@ -56,30 +56,6 @@ class SessionUC:
             '_xfRedirect': 'https://uc.zone/',
             '_xfToken': ''
         }
-        #self.cookie_load()
-        
-    def cookie_load(self):
-        if not os.path.isfile('cookie.txt'):
-            with open('cookie.txt', 'w') as f:
-                f.write('{}')
-            logger.info('Edit cookie.txt')
-            input()
-            exit()
-        with open('cookie.txt') as f:
-            try:
-                cookies_lines = json.load(f)
-                print(cookies_lines)
-                for line in cookies_lines:
-                    if 'name' in line and 'df_id' not in str(line):
-                        self.session.cookies[line['name']] = line['value']
-
-                for line in cookies_lines:
-                    if ('name' or 'value' or 'hostOnly' or 'domain') in line:
-                        break
-                    if 'df_id' not in str(line):
-                        self.session.cookies[line] = cookies_lines[line]
-            except Exception as e:
-                logger.error(e)
 
     def load_timig_list(self):
         with open("times_data.txt", "r") as file:
