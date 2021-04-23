@@ -6,6 +6,7 @@ import os
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import datetime
 import urllib3
+import cfscrape
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -40,7 +41,7 @@ class SessionUC:
     def __init__(self, username, password, rucaptcha_key, recaptcha_response=None):
         self.__username = username
         self.__password = password
-        self.session = requests.Session()
+        self.session = cfscrape.create_scraper() 
         self.token = None
         self.promocode = None
         self.g_rec = recaptcha_response
@@ -55,6 +56,30 @@ class SessionUC:
             '_xfRedirect': 'https://uc.zone/',
             '_xfToken': ''
         }
+        self.cookie_load()
+        
+    def cookie_load(self):
+        if not os.path.isfile('cookie.txt'):
+            with open('cookie.txt', 'w') as f:
+                f.write('{}')
+            logger.info('Edit cookie.txt')
+            input()
+            exit()
+        with open('cookie.txt') as f:
+            try:
+                cookies_lines = json.load(f)
+                print(cookies_lines)
+                for line in cookies_lines:
+                    if 'name' in line and 'df_id' not in str(line):
+                        self.session.cookies[line['name']] = line['value']
+
+                for line in cookies_lines:
+                    if ('name' or 'value' or 'hostOnly' or 'domain') in line:
+                        break
+                    if 'df_id' not in str(line):
+                        self.session.cookies[line] = cookies_lines[line]
+            except Exception as e:
+                logger.error(e)
 
     def load_timig_list(self):
         with open("times_data.txt", "r") as file:
@@ -66,6 +91,7 @@ class SessionUC:
         token_bs = BS(token_get.text, 'html.parser')
         self.payload['_xfToken'] = token_bs.get('value')
         r_auth = self.session.post('https://uc.zone/login/login', data=self.payload, verify=False)
+        print(r_auth.text)
         try:
             soup = BS(r_auth.text, 'html.parser')
             print(soup.select('span[class="p-navgroup-linkText"]')[0].text)
@@ -99,7 +125,7 @@ class SessionUC:
 
         while True:
             try:
-                time.sleep(1)
+                time.sleep(0.5)
 
                 promo_html = self.session.get('https://uc.zone/cheat-statuses/games/DotA2/load-promocode', verify=False)
                 promo_bs = BS(promo_html.content, 'html.parser')
@@ -115,7 +141,7 @@ class SessionUC:
                 curr_time = str(datetime.datetime.now().time()).split(":")[1]
 
                 #curr_time = self.get_curr_time2()
-                if int(str(curr_time)[1]) % 3 == 0  and captcha_got != int(str(curr_time)[1]):
+                if int(str(curr_time)[1]) % 3 == 0 and int(str(curr_time)[1]) != 0  and captcha_got != int(str(curr_time)[1]):
                     self.g_rec = solve_captcha(self.rucaptcha_key, 'https://uc.zone/account/promocode')
                     captcha_got = int(str(curr_time)[1])
                     
