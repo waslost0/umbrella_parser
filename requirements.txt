@@ -6,5 +6,5 @@ idna==2.8
 pkg-resources==0.0.0
 requests==2.22.0
 soupsieve==1.9.5
-urllib3==1.25.7
+urllib3==1.25.8
 cfscrape
