@@ -59,7 +59,7 @@ class SessionUC:
             '_xfToken': ''
         }
 
-    def load_timig_list(self):
+    def load_timing_list(self):
         with open("times_data.txt", "r") as file:
             self.timing_list = file.read()
         self.timing_list = self.timing_list.split('\n') 
@@ -69,7 +69,6 @@ class SessionUC:
         token_bs = BS(token_get.text, 'html.parser')
         self.payload['_xfToken'] = token_bs.get('value')
         r_auth = self.session.post('https://uc.zone/login/login', data=self.payload, verify=False)
-        #print(r_auth.text)
         try:
             soup = BS(r_auth.text, 'html.parser')
             print(soup.select('span[class="p-navgroup-linkText"]')[0].text)
@@ -79,17 +78,11 @@ class SessionUC:
             exit()
         return r_auth
 
-    def get_curr_time2(self):
-        curr_time = datetime.datetime.now().strftime("%H:%M")
-        curr_time_list = list(curr_time)
-        curr_time_list[-1] = str(int(curr_time_list[-1]) + 1)
-        return ''.join(curr_time_list) 
-    
     def get_curr_time(self):
         curr_time = datetime.datetime.now().strftime("%H:%M")
         curr_time_list = list(curr_time)
-        curr_time_list[-1] = str(int(curr_time_list[-1]))
-        return ''.join(curr_time_list) 
+        curr_time_list[-1] = str(int(curr_time_list[-1]) + 1)
+        return ''.join(curr_time_list)
 
     def wait_new_promo(self):
         captcha_got = 0
@@ -99,35 +92,32 @@ class SessionUC:
             self.token = token_bs.select('input[name=_xfToken]')[0]['value']
         except Exception as e:
             print(e)
+        self.load_timing_list()
 
         while True:
             try:
                 time.sleep(0.5)
-
                 promo_html = self.session.get('https://uc.zone/cheat-statuses/games/DotA2/load-promocode', verify=False)
                 promo_bs = BS(promo_html.content, 'html.parser')
-
                 try:
                     current_promocode = promo_bs.select('.gamePromocodeItem.gamePromocode--promocode')[0].text.strip()
                 except:
                     continue
                 print(current_promocode)
                 print(str(datetime.datetime.now().time()))
-                # current_minutes = str(datetime.datetime.now().time()).split(":")[1]
-                curr_time = str(datetime.datetime.now().time()).split(":")[1]
+                current_minutes = str(datetime.datetime.now().time()).split(":")[1]
 
-                #curr_time = self.get_curr_time2()
-                if int(str(curr_time)[1]) % 2 == 0 and int(str(curr_time)[1]) != 0  and captcha_got != int(str(curr_time)[1]):
+                curr_time = self.get_curr_time()
+
+                if curr_time in self.timing_list and captcha_got != int(str(current_minutes)[1]):
+                    time.sleep(20)
                     self.g_rec = self.solve_captcha('https://uc.zone/account/promocode')
-                    captcha_got = int(str(curr_time)[1])
-
-                # if curr_time in self.timing_list and captcha_got != int(str(current_minutes)[1]):
-                    # time.sleep(10)
-                    # self.recived_captcha_id, self.g_rec = solve_captcha(self.rucaptcha_key, 'https://uc.zone/account/promocode')
-                    # captcha_got = int(str(current_minutes)[1])
+                    captcha_got = int(str(current_minutes)[1])
 
                 promo = promo_bs.find('div', {'class': 'gamePromocodeItem gamePromocode--promocode is-activated'})
+
                 if promo:
+                    winsound.Beep(1000, 1000)
                     self.promocode = promo.text.strip()
                     return True
             except Exception as e:

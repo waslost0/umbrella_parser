@@ -1,1 +1,1 @@
-{ "username":"USERNAME", "password":"PASSWORD", "rucaptcha_key":"TOKEN"}
+{ "username":"wegukyqwf", "password":"312Ertasd", "rucaptcha_key":"57a2b12423612422753152ea771257a9"}
