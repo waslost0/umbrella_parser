@@ -5,8 +5,8 @@ import re
 
 
 def get_timing_to_new_promo_generated(promocodes_to_be_generated):
-    # return round((1075 / promocodes_to_be_generated), 2)
-    return round((1020 / promocodes_to_be_generated), 2)
+    return round((1066 / promocodes_to_be_generated), 2)
+    # return round((1020 / promocodes_to_be_generated), 2)
 
 
 def get_promocodes_generated(session):
@@ -18,7 +18,12 @@ def get_promocodes_generated(session):
     promocodes_to_be_generated = int(result)
     return promocodes_to_be_generated
 
+# 13:30:38.578121
+# 13:48:00.907560
+# 14:05:19.635215
 # 14:22:44.841290
+# 14:57:44.841290
+# 15:14:45.276349
 
 if __name__ == '__main__':
     username, password, rucaptcha_key = load_data_from_file()
@@ -30,13 +35,13 @@ if __name__ == '__main__':
     minutes, seconds = str(timing).split('.')
     timing_list = []
 
-    time = datetime.datetime(year=2021, month=1, day=1, hour=6, minute=0)
+    time = datetime.datetime(year=2021, month=1, day=1, hour=6, minute=int(minutes), second=int(seconds))
     timing_list.append(time.strftime("%H:%M"))
 
     for i in range(promo_counts + 2):
         time += datetime.timedelta(minutes=int(minutes), seconds=int(seconds))
         # time += datetime.timedelta(minutes=int(minutes))
-        timing_list.append(time.strftime("%H:%M"))
+        timing_list.append(time.strftime("%H:%M:%S"))
 
     with open('times_data.txt', 'w') as f:
         f.write('\n'.join(timing_list))
