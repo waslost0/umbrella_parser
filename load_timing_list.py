@@ -41,7 +41,7 @@ if __name__ == '__main__':
     for i in range(promo_counts + 2):
         time += datetime.timedelta(minutes=int(minutes), seconds=int(seconds))
         # time += datetime.timedelta(minutes=int(minutes))
-        timing_list.append(time.strftime("%H:%M:%S"))
+        timing_list.append(time.strftime("%H:%M"))
 
     with open('times_data.txt', 'w') as f:
         f.write('\n'.join(timing_list))
