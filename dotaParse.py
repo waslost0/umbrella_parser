@@ -44,12 +44,11 @@ class SessionUC:
         self.__username = username
         self.__password = password
         # self.session = cfscrape.create_scraper()
-        self.session_uc = requests.Session()
-        self.session_dota = requests.Session()
+        self.session = requests.Session()
         self.token = None
         self.promocode = None
         self.timing_list = []
-        self.session_uc.headers = {
+        self.session.headers = {
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36'}
 
         self.payload = {
@@ -63,10 +62,10 @@ class SessionUC:
         self.timing_list = self.timing_list.split('\n')
 
     def auth_uczone(self):
-        token_get = self.session_uc.get('https://uc.zone/login/login')
+        token_get = self.session.get('https://uc.zone/login/login')
         token_bs = BS(token_get.text, 'html.parser')
         self.payload['_xfToken'] = token_bs.get('value')
-        r_auth = self.session_uc.post('https://uc.zone/login/login', data=self.payload, verify=False)
+        r_auth = self.session.post('https://uc.zone/login/login', data=self.payload, verify=False)
         try:
             soup = BS(r_auth.text, 'html.parser')
             print(soup.select('span[class="p-navgroup-linkText"]')[0].text)
@@ -78,7 +77,7 @@ class SessionUC:
 
     def auth_dota(self):
 
-        r_auth = self.session_dota.post('https://dota-cheats.ru/api/v1/auth',
+        r_auth = self.session.post('https://dota-cheats.ru/api/v1/auth',
                                    data={
                                        'password': self.__password,
                                        'username': self.__username
@@ -86,12 +85,12 @@ class SessionUC:
         if not r_auth['success']:
             print("Check email and confirm account..or shit happend.\nYou can try to use VPN. It helps some times.")
             exit()
-        self.session_dota.headers.update({'Authorization': 'Bearer '+  r_auth['token']})
+        self.session.headers.update({'Authorization': 'Bearer ' + r_auth['token']})
         return r_auth
 
     def wait_new_promo(self):
         try:
-            login_result = self.session_uc.get("https://uc.zone/account/promocode", verify=False)
+            login_result = self.session.get("https://uc.zone/account/promocode", verify=False)
             token_bs = BS(login_result.text, 'html.parser')
             self.token = token_bs.select('input[name=_xfToken]')[0]['value']
         except Exception as e:
@@ -100,7 +99,7 @@ class SessionUC:
         while True:
             try:
                 time.sleep(0.5)
-                promo_html = self.session_uc.get('https://uc.zone/cheat-statuses/games/DotA2/load-promocode', verify=False)
+                promo_html = self.session.get('https://uc.zone/cheat-statuses/games/DotA2/load-promocode', verify=False)
                 promo_bs = BS(promo_html.content, 'html.parser')
                 try:
                     current_promocode = promo_bs.select('.gamePromocodeItem.gamePromocode--promocode')[0].text.strip()
@@ -118,7 +117,7 @@ class SessionUC:
 
     def activate_promo(self):
         try:
-            promo_req = self.session_dota.post('https://dota-cheats.ru/api/v1/user/set-promocode',
+            promo_req = self.session.post('https://dota-cheats.ru/api/v1/user/set-promocode',
                                           data={
                                               'promocode': self.promocode
                                           }).json()
