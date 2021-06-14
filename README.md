@@ -17,4 +17,7 @@ Change login, password and rucaptcha_key in data.txt
 py load_timing_list.py
 py UCParse.py
 ```
-
+or
+```bash
+py dotaParse.py
+```
