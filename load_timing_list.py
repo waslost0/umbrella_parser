@@ -5,8 +5,8 @@ import re
 
 
 def get_timing_to_new_promo_generated(promocodes_to_be_generated):
-    return round((1066 / promocodes_to_be_generated), 2)
-    # return round((1020 / promocodes_to_be_generated), 2)
+    return round((1061 / promocodes_to_be_generated), 2)
+    #return round((1020 / promocodes_to_be_generated), 2)
 
 
 def get_promocodes_generated(session):
@@ -38,7 +38,7 @@ if __name__ == '__main__':
     time = datetime.datetime(year=2021, month=1, day=1, hour=6, minute=int(minutes), second=int(seconds))
     timing_list.append(time.strftime("%H:%M"))
 
-    for i in range(promo_counts + 2):
+    for i in range(promo_counts):
         time += datetime.timedelta(minutes=int(minutes), seconds=int(seconds))
         # time += datetime.timedelta(minutes=int(minutes))
         timing_list.append(time.strftime("%H:%M"))

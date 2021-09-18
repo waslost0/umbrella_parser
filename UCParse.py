@@ -7,7 +7,8 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import datetime
 import urllib3
 import winsound
-#import cfscrape
+
+# import cfscrape
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -42,14 +43,15 @@ class SessionUC:
     def __init__(self, username, password, rucaptcha_key, recaptcha_response=None):
         self.__username = username
         self.__password = password
-        #self.session = cfscrape.create_scraper() 
+        # self.session = cfscrape.create_scraper()
         self.session = requests.Session()
         self.token = None
         self.promocode = None
         self.g_rec = recaptcha_response
         self.rucaptcha_key = rucaptcha_key
         self.timing_list = []
-        self.session.headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36'}
+        self.session.headers = {
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36'}
 
         self.payload = {
             'login': self.__username,
@@ -62,7 +64,7 @@ class SessionUC:
     def load_timing_list(self):
         with open("times_data.txt", "r") as file:
             self.timing_list = file.read()
-        self.timing_list = self.timing_list.split('\n') 
+        self.timing_list = self.timing_list.split('\n')
 
     def auth(self):
         token_get = self.session.get('https://uc.zone/login/login')
@@ -82,6 +84,7 @@ class SessionUC:
         curr_time = datetime.datetime.now().strftime("%H:%M")
         curr_time_list = list(curr_time)
         curr_time_list[-1] = str(int(curr_time_list[-1]) + 1)
+        # curr_time_list[-1] = str(int(curr_time_list[-1]))
         return ''.join(curr_time_list)
 
     def wait_new_promo(self):
@@ -93,7 +96,8 @@ class SessionUC:
         except Exception as e:
             print(e)
         self.load_timing_list()
-
+        print(self.timing_list)
+        timings = set([])
         while True:
             try:
                 time.sleep(0.5)
@@ -103,14 +107,14 @@ class SessionUC:
                     current_promocode = promo_bs.select('.gamePromocodeItem.gamePromocode--promocode')[0].text.strip()
                 except:
                     continue
-                print(current_promocode)
+                print(current_promocode, end=' ')
                 print(str(datetime.datetime.now().time()))
                 current_minutes = str(datetime.datetime.now().time()).split(":")[1]
 
                 curr_time = self.get_curr_time()
+                print(curr_time)
 
                 if curr_time in self.timing_list and captcha_got != int(str(current_minutes)[1]):
-                    time.sleep(20)
                     self.g_rec = self.solve_captcha('https://uc.zone/account/promocode')
                     captcha_got = int(str(current_minutes)[1])
 
@@ -118,6 +122,12 @@ class SessionUC:
 
                 if promo:
                     winsound.Beep(1000, 1000)
+                    # if curr_time not in timings:
+                    #     winsound.Beep(1000, 1000)
+                    #     with open('a.txt', 'a+') as f:
+                    #         f.write(str(datetime.datetime.now().time()) + '\n')
+                    # timings.add(curr_time)
+
                     self.promocode = promo.text.strip()
                     return True
             except Exception as e:
@@ -147,10 +157,9 @@ class SessionUC:
             print(promo_req.text)
             html_returned = BS(promo_req.content, 'html.parser')
             winsound.Beep(1000, 1000)
-            #os.system('play --no-show-progress --null --channels 2 synth %s sine %f' %( 0.2, 400))
+            # os.system('play --no-show-progress --null --channels 2 synth %s sine %f' %( 0.2, 400))
         except Exception as e:
             raise e
-
 
     def solve_captcha(self, url):
         try:

@@ -64,7 +64,10 @@ class SessionUC:
     def auth_uczone(self):
         token_get = self.session.get('https://uc.zone/login/login')
         token_bs = BS(token_get.text, 'html.parser')
+        token_bs = token_bs.select_one('input[name="_xfToken"]')
+
         self.payload['_xfToken'] = token_bs.get('value')
+        self.payload['remember'] = '1'
         r_auth = self.session.post('https://uc.zone/login/login', data=self.payload, verify=False)
         try:
             soup = BS(r_auth.text, 'html.parser')
@@ -89,12 +92,6 @@ class SessionUC:
         return r_auth
 
     def wait_new_promo(self):
-        try:
-            login_result = self.session.get("https://uc.zone/account/promocode", verify=False)
-            token_bs = BS(login_result.text, 'html.parser')
-            self.token = token_bs.select('input[name=_xfToken]')[0]['value']
-        except Exception as e:
-            print(e)
         self.load_timing_list()
         while True:
             try:
