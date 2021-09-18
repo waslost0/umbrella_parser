@@ -56,11 +56,6 @@ class SessionUC:
             'password': self.__password
         }
 
-    def load_timing_list(self):
-        with open("times_data.txt", "r") as file:
-            self.timing_list = file.read()
-        self.timing_list = self.timing_list.split('\n')
-
     def auth_uczone(self):
         token_get = self.session.get('https://uc.zone/login/login')
         token_bs = BS(token_get.text, 'html.parser')
@@ -92,7 +87,6 @@ class SessionUC:
         return r_auth
 
     def wait_new_promo(self):
-        self.load_timing_list()
         while True:
             try:
                 time.sleep(0.5)
